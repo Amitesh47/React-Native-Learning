@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  Dimensions
+} from "react-native";
 
 import NumberContainer from "../Components/NumberContainer";
 import Card from "../Components/Card";
@@ -30,10 +37,25 @@ const GameScreen = props => {
   const initialGuess = getRandomNumber(1, 100, props.userChoice);
   const [currentGuess, setCurrentGuess] = useState(initialGuess);
   const [passedGuess, setPassedGuess] = useState([initialGuess]);
+  const [availableHeight, setAvailableHeight] = useState(
+    Dimensions.get("window").height
+  );
 
   const currentLow = useRef(1);
   const currentHigh = useRef(100);
   const { userChoice, gameOverHandler } = props;
+
+  useEffect(() => {
+    const updateLayout = () => {
+      setAvailableHeight(Dimensions.get("window").height);
+    };
+
+    Dimensions.addEventListener("change", updateLayout);
+
+    return () => {
+      Dimensions.removeEventListener("change", updateLayout);
+    };
+  });
 
   useEffect(() => {
     if (currentGuess === props.userChoice) {
@@ -68,26 +90,57 @@ const GameScreen = props => {
     setPassedGuess(roundNo => [nextRandomNumber, ...roundNo]);
   };
 
-  return (
-    <View style={styles.screen}>
-      <Text style={DefaultStyles.titleText}> Opponent's Guess</Text>
-      <NumberContainer style={styles.numberContainer}>
-        <Text>{currentGuess}</Text>
-      </NumberContainer>
-      <Card style={styles.buttonContainer}>
-        <MainButton onPress={hintHandler.bind(this, "lower")}>LOWER</MainButton>
-        <MainButton onPress={hintHandler.bind(this, "higher")}>
-          GREATER
-        </MainButton>
-      </Card>
-      <View style={styles.list}>
-        <ScrollView>
-          {passedGuess.map((guess, index) =>
-            renderListItems(guess, passedGuess.length - index)
-          )}
-        </ScrollView>
+  if (availableHeight < 400) {
+    return (
+      <View style={styles.screen}>
+        <Text style={DefaultStyles.titleText}> Opponent's Guess</Text>
+        <View style={styles.controls}>
+          <MainButton onPress={hintHandler.bind(this, "lower")}>
+            LOWER
+          </MainButton>
+          <NumberContainer style={styles.numberContainer}>
+            <Text>{currentGuess}</Text>
+          </NumberContainer>
+          <MainButton onPress={hintHandler.bind(this, "higher")}>
+            GREATER
+          </MainButton>
+        </View>
+
+        <View style={styles.list}>
+          <ScrollView>
+            {passedGuess.map((guess, index) =>
+              renderListItems(guess, passedGuess.length - index)
+            )}
+          </ScrollView>
+        </View>
       </View>
-    </View>
+    );
+  }
+
+  return (
+    <ScrollView>
+      <View style={styles.screen}>
+        <Text style={DefaultStyles.titleText}> Opponent's Guess</Text>
+        <NumberContainer style={styles.numberContainer}>
+          <Text>{currentGuess}</Text>
+        </NumberContainer>
+        <Card style={styles.buttonContainer}>
+          <MainButton onPress={hintHandler.bind(this, "lower")}>
+            LOWER
+          </MainButton>
+          <MainButton onPress={hintHandler.bind(this, "higher")}>
+            GREATER
+          </MainButton>
+        </Card>
+        <View style={styles.list}>
+          <ScrollView>
+            {passedGuess.map((guess, index) =>
+              renderListItems(guess, passedGuess.length - index)
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -106,21 +159,29 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "70%"
+    width: "70%" // Check here for IOS
   },
 
   listItem: {
     flexDirection: "row",
-    justifyContent : 'space-around',
-    borderColor : '#ccc',
-    borderWidth : 1,
-    padding : 15,
-    marginVertical : 10,
+    justifyContent: "space-around",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    padding: 15,
+    marginVertical: 10
   },
 
-  list : {
-    width : '80%',
-    flex : 1
+  list: {
+    width: "80%",
+    flex: 1,
+    marginTop: Dimensions.get("window").height > 600 ? 0 : 10 //Check here for IOS
+  },
+
+  controls: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    width: "80%"
   }
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import {
   View,
   Text,
@@ -6,7 +6,10 @@ import {
   Button,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert
+  Alert,
+  Dimensions,
+  ScrollView,
+  KeyboardAvoidingView
 } from "react-native";
 
 import Card from "../Components/Card";
@@ -20,6 +23,19 @@ const StartGameScreen = props => {
   const [enteredText, setEnteredText] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [enteredNumber, setEnteredNumber] = useState();
+  const [buttonWidth, setButtonWidth] = useState(Dimensions.get('window').width / 4)
+
+  useEffect(() => {
+    const updateLayout = () => {
+      setButtonWidth(Dimensions.get('window').width / 4)
+    }
+
+    Dimensions.addEventListener('change',updateLayout)
+
+    return ( ) => {
+      Dimensions.removeEventListener('change',updateLayout)
+    }
+  })
 
   const numberInputHandler = text => {
     setEnteredText(text.replace(/[^0-9]/g, ""));
@@ -58,6 +74,8 @@ const StartGameScreen = props => {
   }
 
   return (
+    <ScrollView>
+      <KeyboardAvoidingView behavior='position' keyboardVerticalOffset = {30}>
     <TouchableWithoutFeedback // This is done to dismiss the number keyboard on tapping outside it
       onPress={() => {
         Keyboard.dismiss();
@@ -78,14 +96,14 @@ const StartGameScreen = props => {
             value={enteredText}
           />
           <View style={styles.buttonContainer}>
-            <View style={styles.buttons}>
+            <View style={{width : buttonWidth}}>
               <Button
                 title="Reset"
                 onPress={resetButtonHandler}
                 color={Colors.accent}
               />
             </View>
-            <View style={styles.buttons}>
+            <View style={{width : buttonWidth}}>
               <Button
                 title="Confirm"
                 onPress={confrimButtonHandler}
@@ -97,6 +115,8 @@ const StartGameScreen = props => {
         {outputEnteredNumber}
       </View>
     </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -115,6 +135,8 @@ const styles = StyleSheet.create({
 
   inputContainer: {
     width: "80%",
+    minWidth : 310,
+    maxWidth:'95%',
     alignItems: "center"
   },
 
@@ -123,10 +145,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: 16
-  },
-
-  buttons: {
-    width: "35%"
   },
 
   input: {
